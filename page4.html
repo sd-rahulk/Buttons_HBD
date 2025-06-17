@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Annoying Button Game</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" href="#" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header><h1>Annoying Button Game</h1></header>
+    <main>
+      <div id="game-area">
+        <div id="game-info">
+          <p>Click the correct button</p>
+          <p id="highscore-container" class="hidden">
+            Highscore: <span id="high-score-seconds"></span> seconds left
+          </p>
+          <p id="win-lose-message"></p>
+          <div id="countdown-timer-container" class="hidden">
+            <span id="countdown-timer"></span> seconds left
+          </div>
+          <div id="start-button-container">
+            <button id="button-start-or-play-again">Start</button>
+          </div>
+        </div>
+        <div id="buttons-area"></div>
+      </div>
+    </main>
+
+    <script>
+        'use strict';
+
+let gameState = {
+  state: 'initial', // initial, playing, or finished
+  timeLeft: '', // keeps track of timer to use when finished
+};
+
+let domThings = {
+  buttonsArea: document.getElementById('buttons-area'),
+  timeNumber: document.getElementById('countdown-timer'),
+  buttonStartOrPlayAgain: document.getElementById('button-start-or-play-again'),
+  highScoreSeconds: document.getElementById('high-score-seconds'),
+  winLoseMessage: document.getElementById('win-lose-message'),
+  countdownTimerContainer: document.getElementById('countdown-timer-container'),
+  highscoreContainer: document.getElementById('highscore-container'),
+};
+
+let pastHighScore = 0;
+let buttons = [];
+
+function drawButtons() {
+  let specialIndex = Math.floor(Math.random() * 16);
+
+  for (let i = 0; i < 16; i++) {
+    let oneSection = document.createElement('div');
+    oneSection.classList.add('section');
+    domThings.buttonsArea.appendChild(oneSection);
+
+    let oneButton = document.createElement('button');
+    oneButton.classList.add('initial');
+    oneButton.classList.add('huehue');
+    oneButton.textContent = 'Click Me!';
+    oneSection.appendChild(oneButton);
+
+    oneButton.addEventListener('click', (e) => {
+      aButtonWasClicked(e, i);
+    });
+
+    buttons.push(oneButton);
+
+    if (i === specialIndex) {
+      oneButton.classList.add('special');
+    }
+  }
+}
+
+function aButtonWasClicked(e, buttonIndex) {
+  if (gameState.state === 'playing') {
+    let thisButton = e.target;
+
+    if (thisButton.classList.contains('initial')) {
+      thisButton.classList.remove('initial');
+      thisButton.classList.add('moved-1');
+    } else if (thisButton.classList.contains('moved-1')) {
+      // if it's the special button, make it moved-2, else, delete it
+      if (thisButton.classList.contains('special')) {
+        thisButton.classList.remove('moved-1');
+        thisButton.classList.add('moved-2');
+      } else {
+        thisButton.classList.remove('moved-1');
+        thisButton.classList.add('hidden');
+      }
+    } else if (thisButton.classList.contains('moved-2')) {
+      // this only happens on the special button
+      thisButton.classList.remove('moved-2');
+      thisButton.classList.add('moved-3');
+    } else if (thisButton.classList.contains('moved-3')) {
+      // this only happens on the special button
+      thisButton.classList.remove('moved-3');
+      thisButton.classList.add('moved-win');
+      youWon(thisButton);
+    }
+  }
+}
+
+function youWon(thisButton) {
+  clearInterval(intervalA);
+  gameState.state = 'finished';
+  thisButton.textContent = 'open: https://harihappybirthday-vfkj02e.web.app/';
+  domThings.winLoseMessage.textContent = 'YOU WIN!';
+
+  if (pastHighScore <= gameState.timeLeft) {
+    pastHighScore = gameState.timeLeft;
+    domThings.highScoreSeconds.textContent = pastHighScore;
+
+    if (domThings.highscoreContainer.classList.contains('hidden')) {
+      domThings.highscoreContainer.classList.remove('hidden');
+    }
+  }
+
+  resetStartButton();
+}
+
+// tell the startbutton that if you click start, you start playing.
+domThings.buttonStartOrPlayAgain.addEventListener('click', startPlaying);
+
+let timerIncrement = 100; // in ms
+const maxTime = 10000;
+
+let intervalA = '';
+let timerTime = 0;
+
+function startPlaying() {
+  // Show countdown timer first time hitting the start button
+  if (domThings.countdownTimerContainer.classList.contains('hidden')) {
+    domThings.countdownTimerContainer.classList.remove('hidden');
+  }
+
+  // Delete buttons if not first time playing
+  let buttonsArea = document.getElementById('buttons-area');
+
+  while (buttonsArea.firstChild) {
+    buttonsArea.firstChild.remove();
+  }
+
+  // Hide win lose message and start button
+  domThings.winLoseMessage.textContent = '';
+  domThings.buttonStartOrPlayAgain.classList.add('hidden');
+
+  // Set the state of the game and do other things
+  gameState.state = 'playing';
+  drawButtons();
+  startTimer();
+}
+
+function startTimer() {
+  timerTime = 0;
+  intervalA = setInterval(countDown, timerIncrement);
+}
+
+function youLose() {
+  gameState.state = 'finished';
+  clearInterval(intervalA);
+  domThings.winLoseMessage.textContent = 'YOU LOSE';
+  resetStartButton();
+}
+
+function resetStartButton() {
+  domThings.buttonStartOrPlayAgain.textContent = 'Play Again';
+  domThings.buttonStartOrPlayAgain.classList.remove('hidden');
+}
+
+function countDown() {
+  timerTime += timerIncrement;
+  gameState.timeLeft = (maxTime - timerTime) / 1000;
+  domThings.timeNumber.textContent = gameState.timeLeft;
+
+  if (gameState.timeLeft <= 0) {
+    youLose();
+  }
+}
+
+    </script>
+    <style>
+        :root {
+  --color-1: #3c3045;
+  --color-2: #a94b45;
+  --color-3: #e25f37;
+  --color-4: #d1c98e;
+  --color-5: #e3ddbd;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  background-color: maroon;
+  box-shadow: 1px 1px 10px black;
+}
+
+h1 {
+  color: white;
+  text-shadow: 1px 1px 2px var(--color-1), -1px -1px 2px var(--color-1);
+  padding: 0.25rem;
+}
+
+body {
+  background: steelblue;
+  min-height: 100vh;
+  font-size: medium;
+  color: var(--color-4);
+  text-shadow: 0px 0px 2px var(--color-1), 1px 1px 2px black;
+}
+
+body,
+button {
+  font-family: 'Cabin', sans-serif;
+  font-weight: 600;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+}
+
+#game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 700px;
+  margin-top: 1rem;
+}
+
+#game-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.6rem;
+  position: relative;
+}
+
+#win-lose-message {
+  height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: x-large;
+}
+
+/* Top Button starts here */
+#start-button-container {
+  position: relative;
+  height: 4rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+#button-start-or-play-again {
+  padding: 6px 15px;
+}
+/* Top Button ends here */
+
+/* All buttons start here */
+button {
+  border-radius: 150px;
+  padding: 3px 10px;
+  background: linear-gradient(10deg, var(--color-4), var(--color-5));
+  color: var(--color-1);
+  box-shadow: 0 2px 10px black;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  position: absolute;
+}
+
+button:active {
+  color: var(--color-5);
+  background: linear-gradient(10deg, var(--color-2) 0%, var(--color-1) 120%);
+  box-shadow: none;
+}
+/* All buttons end here */
+
+/* Button area starts here */
+#buttons-area {
+  display: flex;
+  flex-wrap: wrap;
+  width: 500px;
+  position: relative;
+}
+
+.section {
+  position: relative;
+  flex: 1 0 23%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 3rem;
+}
+
+#buttons-area button {
+  position: absolute;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.moved-1 {
+  top: 20px;
+  left: 0;
+}
+
+.moved-2 {
+  transform: rotate(25deg);
+}
+
+.moved-3 {
+  top: -20px;
+  transform: rotate(25deg);
+  left: 50px;
+}
+
+.moved-win {
+  transform: rotate(-10deg);
+  height: auto;
+  width: 150px;
+}
+/* Button area ends here */
+
+/* Game Timer Stuff starts here */
+#countdown-timer {
+  width: 2rem;
+  display: inline-block;
+}
+/* Game Timer Stuff ends here */
+
+    </style>
+  </body>
+</html>
